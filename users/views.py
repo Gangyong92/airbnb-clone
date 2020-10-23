@@ -4,6 +4,7 @@ from django.views.generic import FormView
 from django.urls import reverse_lazy
 from django.shortcuts import redirect, reverse
 from django.contrib.auth import authenticate, login, logout
+from django.core.files.base import ContentFile
 from . import forms, models
 
 
@@ -120,6 +121,7 @@ def github_callback(request):
                             username=email,
                             bio=bio,
                             login_method=models.User.LOGIN_GITHUB,
+                            email_verified=True,
                         )
                         print("test2222222222")
                         user.set_unusable_password()
@@ -132,4 +134,75 @@ def github_callback(request):
             raise GithubException()
     except GithubException:
         # send error message
+        return redirect(reverse("users:login"))
+
+
+def kakao_login(request):
+    client_id = os.environ.get("KAKAO_ID")
+    redirect_uri = "http://127.0.0.1:8000/users/login/kakao/callback"
+    return redirect(
+        f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
+    )
+
+
+class KakaoException(Exception):
+    pass
+
+
+def kakao_callback(request):
+    try:
+        code = request.GET.get("code")
+        client_id = os.environ.get("KAKAO_ID")
+        redirect_uri = "http://127.0.0.1:8000/users/login/kakao/callback"
+        token_request = requests.post(
+            f"https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id={client_id}&redirect_uri={redirect_uri}&code={code}"
+        )
+        token_json = token_request.json()
+        error = token_json.get("error", None)
+        if error is not None:
+            raise KakaoException()
+        access_token = token_json.get("access_token")
+        profile_request = requests.post(
+            "https://kapi.kakao.com/v2/user/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        profile_json = profile_request.json()
+        kakao_account = profile_json.get("kakao_account")
+        email = kakao_account.get("email", None)
+        if email is None:
+            raise KakaoException()
+        properties = profile_json.get("properties")
+        nickname = properties.get("nickname")
+        # image는 url로 반환됨
+        profile = kakao_account.get("profile")
+        profile_image_url = profile.get("profile_image_url")
+        try:
+            user = models.User.objects.get(email=email)
+            if user.login_method != models.User.LOGIN_KAKAO:
+                raise KakaoException()
+        except models.User.DoesNotExist:
+            user = models.User.objects.create(
+                email=email,
+                username=email,
+                first_name=nickname,
+                login_method=models.User.LOGIN_KAKAO,
+                email_verified=True,
+            )
+            user.set_unusable_password()
+            user.save()
+            if profile_image_url is not None:
+                # 앞에서 url로 받은 image를 요청함.
+                photo_request = requests.get(profile_image_url)
+                # photo_request.content는 binary로 존재 함. data 또는 bullshit 파일임.
+                # raw 파일로 파일화 시키려면 ContentFile에 데이터를 집어넣어야함.
+                # C언어에서 fopen 하고 fwrite로 데이터 쓰는걸 한꺼번에 하는 느낌임.
+                # avatar는 FieldFile에 속하는데 알아서 저장하기 때문에 user.save()는 할 필요 없음
+                # URL을 바로 연동하면 나중에 URL이나 파일 변경시 문제 생길 수 있어 binary 데이터를
+                # 가져와서 DB에 때려 넣어서 관리함.
+                user.avatar.save(
+                    f"{nickname}-avatar", ContentFile(photo_request.content)
+                )
+        login(request, user)
+        return redirect(reverse("core:home"))
+    except KakaoException:
         return redirect(reverse("users:login"))
