@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 from . import models
 
 
@@ -25,10 +26,10 @@ class LoginForm(forms.Form):
             self.add_error("email", forms.ValidationError("User does not exist"))
 
 
-# Model에 연결된 Form 활용 방법: ModelForm 사용
-# 유니크 필드는 ModelForm에서 알아서 validate 처리해줘서 예외처리 안해줘도 됨.
-# 안에 save method도 있음 object를 DB에 save 해줌
-class SignUpForm(forms.ModelForm):
+# UserCreationForm안에 password_validation.validate_password가 중요함.
+# 그대로 상속 받아 쓰거나 UserCreationForm안에 내용 긁어와서 Overriding
+# 해서 사용하면 됨.
+class SignUpForm(UserCreationForm):
     class Meta:
         model = models.User
         fields = (
@@ -37,27 +38,21 @@ class SignUpForm(forms.ModelForm):
             "email",
         )
 
-    # password는 user가 가지고 있지 않으니까 그대로 두자
     password = forms.CharField(widget=forms.PasswordInput)
-    # password1은 이름이 마음에 안드니까 label을 줌
     password1 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
 
-    # clean_password하면 1이 clean전 이라서 가지고 올 수 없음. 그래서 1 기준으로 만듬.
     def clean_password1(self):
         password = self.cleaned_data.get("password")
         password1 = self.cleaned_data.get("password1")
-
         if password != password1:
             raise forms.ValidationError("Password confirmation does not match")
         else:
             return password
 
     def save(self, *args, **kwargs):
-        # commit=False 옵션은 object는 생성하지만 db에는 올리지 말라는 뜻임
         user = super().save(commit=False)
         email = self.cleaned_data.get("email")
         password = self.cleaned_data.get("password")
         user.username = email
-        # password를 암호화 시켜줌
         user.set_password(password)
         user.save()
