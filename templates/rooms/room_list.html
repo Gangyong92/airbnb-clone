@@ -6,21 +6,23 @@
 
 {% block content %}
 
+    <div class="container rounded-xl mx-auto bg-gray-800 h-50vh mt-32 mb-24 bg-cover bg-center" style="background-image:url(https://images.unsplash.com/photo-1535189043414-47a3c49a0bed?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop)">
+
+    </div>
+
     {% for room in rooms %}
-        <h3>
-            <a href="{% url "rooms:detail" room.pk %}">
-                {{room.name}} / ${{room.price}}
-            </a>
-        </h3>
+    <h3>
+        <a href="{% url "rooms:detail" room.pk %}">
+            {{room.name}} / ${{room.price}}
+        </a>
+    </h3>
     {% endfor %}
 
     <h5>
     {% if page_obj.has_previous %}
         <a href="?page={{page_obj.previous_page_number}}">Previous</a>
     {% endif %}
-
         Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}
-        
     {% if page_obj.has_next %}
         <a href="?page={{page_obj.next_page_number}}">Next</a>
     {% endif %}
