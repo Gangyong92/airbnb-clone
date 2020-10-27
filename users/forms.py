@@ -1,13 +1,14 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from . import models
 
 
 class LoginForm(forms.Form):
 
-    email = forms.EmailField()
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"placeholder": "Email"}))
     # widget=forms.PasswordInput 문자로 출력되지 않도록 옵션 추가
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+    )
 
     def clean(self):
         email = self.cleaned_data.get("email")
@@ -29,7 +30,7 @@ class LoginForm(forms.Form):
 # UserCreationForm안에 password_validation.validate_password가 중요함.
 # 그대로 상속 받아 쓰거나 UserCreationForm안에 내용 긁어와서 Overriding
 # 해서 사용하면 됨.
-class SignUpForm(UserCreationForm):
+class SignUpForm(forms.ModelForm):
     class Meta:
         model = models.User
         fields = (
@@ -37,9 +38,18 @@ class SignUpForm(UserCreationForm):
             "last_name",
             "email",
         )
+        widgets = {
+            "first_name": forms.TextInput(attrs={"placeholder": "First Name"}),
+            "last_name": forms.TextInput(attrs={"placeholder": "Last Name"}),
+            "email": forms.EmailInput(attrs={"placeholder": "Email Name"}),
+        }
 
-    password = forms.CharField(widget=forms.PasswordInput)
-    password1 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+    )
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Confirm Password"})
+    )
 
     def clean_password1(self):
         password = self.cleaned_data.get("password")
