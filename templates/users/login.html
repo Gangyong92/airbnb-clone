@@ -15,8 +15,24 @@
     
         <form  method="POST" action={% url "users:login" %}>
             {% csrf_token %}
-            {{form.email}}
-            {{form.password}}
+
+            <div class="input">
+                {{form.email}}
+                {% if form.email.errors %}
+                    {% for error in form.first_name.errors %}
+                        {{error}}
+                    {% endfor %}  
+                {% endif %}
+            </div>
+
+            <div class="input">
+                {{form.password}}
+                {% if form.password.errors %}
+                    {% for error in form.first_name.errors %}
+                        {{error}}
+                    {% endfor %}  
+                {% endif %}
+            </div>
             <button class="btn bg-red-500 text-white">Login</button>
         </form>
 
