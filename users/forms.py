@@ -4,10 +4,22 @@ from . import models
 
 class LoginForm(forms.Form):
 
-    email = forms.EmailField(widget=forms.EmailInput(attrs={"placeholder": "Email"}))
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-input",
+                "placeholder": "Email",
+            }
+        )
+    )
     # widget=forms.PasswordInput 문자로 출력되지 않도록 옵션 추가
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-input",
+                "placeholder": "Password",
+            }
+        )
     )
 
     def clean(self):
@@ -39,16 +51,41 @@ class SignUpForm(forms.ModelForm):
             "email",
         )
         widgets = {
-            "first_name": forms.TextInput(attrs={"placeholder": "First Name"}),
-            "last_name": forms.TextInput(attrs={"placeholder": "Last Name"}),
-            "email": forms.EmailInput(attrs={"placeholder": "Email Name"}),
+            "first_name": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                    "placeholder": "First Name",
+                }
+            ),
+            "last_name": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                    "placeholder": "Last Name",
+                }
+            ),
+            "email": forms.EmailInput(
+                attrs={
+                    "class": "form-input",
+                    "placeholder": "Email Name",
+                }
+            ),
         }
 
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-input",
+                "placeholder": "Password",
+            }
+        )
     )
     password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Confirm Password"})
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-input",
+                "placeholder": "Confirm Password",
+            }
+        )
     )
 
     def clean_email(self):
