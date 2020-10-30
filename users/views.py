@@ -1,19 +1,20 @@
 import os
 import requests
+from django.contrib.auth.views import PasswordChangeView
 from django.views.generic import FormView, DetailView, UpdateView
 from django.urls import reverse_lazy
 from django.shortcuts import redirect, reverse
 from django.contrib.auth import authenticate, login, logout
 from django.core.files.base import ContentFile
 from django.contrib import messages
-from . import forms, models
+from django.contrib.messages.views import SuccessMessageMixin
+from . import forms, models, mixins
 
 
-class LoginView(FormView):
+class LoginView(mixins.LoggedOutOnlyView, FormView):
 
     template_name = "users/login.html"
     form_class = forms.LoginForm
-    success_url = reverse_lazy("core:home")
 
     # form이 유효한지 체크 해줌, 어디론가 보내줄 필요도 다른 걸 할 필요도 없음.
     def form_valid(self, form):
@@ -24,6 +25,14 @@ class LoginView(FormView):
             login(self.request, user)
         # super().form_valid가 호출될 때 success_url로 감.
         return super().form_valid(form)
+
+    def get_success_url(self):
+        next_arg = self.request.GET.get("next")
+        if next_arg is not None:
+            return next_arg
+        else:
+            # next가 없다면 home으로 감
+            return reverse("core:home")
 
 
 def log_out(request):
@@ -217,20 +226,28 @@ class UserProfileView(DetailView):
     context_object_name = "user_obj"
 
 
-class UpdateProfileView(UpdateView):
+class UpdateProfileView(mixins.LoggedInOnlyView, SuccessMessageMixin, UpdateView):
 
-    model = models.User
+    form_class = forms.UpdateProfileForm
     template_name = "users/update-profile.html"
-    fields = (
-        "first_name",
-        "last_name",
-        "avatar",
-        "gender",
-        "bio",
-        "birthdate",
-        "language",
-        "currency",
-    )
+    success_message = "Profile Updated"
 
     def get_object(self, queryset=None):
         return self.request.user
+
+
+class UpdatePasswordView(
+    mixins.LoggedInOnlyView,
+    mixins.EmailLoginOnlyView,
+    SuccessMessageMixin,
+    PasswordChangeView,
+):
+
+    form_class = forms.UpdatePasswordForm
+    template_name = "users/update-password.html"
+    success_message = "Password Updated"
+
+    # 성공시 profile 화면으로 이동. 로그아웃 시키고 재로그인하도록 하는게 어떨까
+    # 싶기도 함.
+    def get_success_url(self):
+        return self.request.user.get_absolute_url()
