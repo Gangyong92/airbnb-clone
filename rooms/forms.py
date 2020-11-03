@@ -27,3 +27,112 @@ class SearchForm(forms.Form):
         queryset=models.Facility.objects.all(),
         widget=forms.CheckboxSelectMultiple,
     )
+
+
+class CreatePhotoForm(forms.ModelForm):
+    class Meta:
+        model = models.Photo
+        fields = (
+            "caption",
+            "file",
+        )
+        widgets = {
+            "caption": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "file": forms.FileInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+        }
+
+    def save(self, pk, *args, **kwargs):
+        photo = super().save(commit=False)
+        room = models.Room.objects.get(pk=pk)
+        photo.room = room
+        photo.save()
+
+
+class CreateRoomForm(forms.ModelForm):
+    class Meta:
+        model = models.Room
+        fields = (
+            "name",
+            "description",
+            "country",
+            "city",
+            "price",
+            "address",
+            "guests",
+            "beds",
+            "bedrooms",
+            "baths",
+            "check_in",
+            "check_out",
+            "instant_book",
+            "room_type",
+            "amenities",
+            "facilities",
+            "house_rules",
+        )
+        widgets = {
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "city": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "price": forms.NumberInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "address": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "guests": forms.NumberInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "beds": forms.NumberInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "bedrooms": forms.NumberInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "baths": forms.NumberInput(
+                attrs={
+                    "class": "form-input",
+                }
+            ),
+            "check_in": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                    "placeholder": "HH:MM:SS",
+                }
+            ),
+            "check_out": forms.TextInput(
+                attrs={
+                    "class": "form-input",
+                    "placeholder": "HH:MM:SS",
+                }
+            ),
+        }
+
+    def save(self, *args, **kwargs):
+        room = super().save(commit=False)
+        return room
