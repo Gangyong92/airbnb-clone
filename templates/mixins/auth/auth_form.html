@@ -2,8 +2,8 @@
     {% csrf_token %}
 
     
-    {% if form.non_filed_errors %}
-        {% for error in form.non_filed_errors %}
+    {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
             <span class="text-red-700 font-medium text-sm">{{error}}</span>
         {% endfor %}  
     {% endif %}

@@ -32,6 +32,7 @@ class SearchView(View):
 
     """ SearchView Definition """
 
+    # 이전 페이지 값을 현재 페이지에서 유지하기 위해 사용.
     def get(self, request):
         country = request.GET.get("country")
 
