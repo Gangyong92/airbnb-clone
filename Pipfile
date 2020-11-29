@@ -17,6 +17,8 @@ django-seed = "*"
 django-dotenv = "*"
 requests = "*"
 sentry-sdk = "==0.13.2"
+django-storages = "*"
+boto3 = "*"
 
 [requires]
 python_version = "3.8"
